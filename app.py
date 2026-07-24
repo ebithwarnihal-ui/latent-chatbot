@@ -28,14 +28,12 @@ st.title("🎤 India's Got Latent Chatbot")
 # ---- WHATSAPP-STYLE CSS ----
 st.markdown("""
 <style>
-/* 1. Import Outfit Font */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"], h1, h2, h3, p {
     font-family: 'Outfit', sans-serif !important;
 }
 
-/* 2. Chat row container (ensures avatars stay visible) */
 div[data-testid="stChatMessage"] {
     background-color: transparent !important;
     padding: 0.75rem 0 !important;
@@ -44,17 +42,14 @@ div[data-testid="stChatMessage"] {
     width: 100% !important;
 }
 
-/* Push USER row to the right */
 div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarUser"]) {
     justify-content: flex-end !important;
 }
 
-/* Keep ASSISTANT row to the left */
 div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarAssistant"]) {
     justify-content: flex-start !important;
 }
 
-/* Stop content wrapper from expanding full-width */
 div[data-testid="stChatMessageContent"] {
     flex: 0 1 auto !important;
     width: fit-content !important;
@@ -64,16 +59,15 @@ div[data-testid="stChatMessageContent"] {
     border: none !important;
 }
 
-/* 3. USER BUBBLE (Pill on the Right, Avatar beside it) */
 div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarUser"]) div[data-testid="stChatMessageContent"] {
-    order: -1 !important; /* Positions bubble to the left of user avatar */
+    order: -1 !important;
     margin-right: 12px !important;
 }
 
 div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarUser"]) div[data-testid="stChatMessageContent"] > div {
     background-color: #2F2F2F !important;
     color: #FFFFFF !important;
-    border-radius: 24px !important; /* Fully rounded capsule */
+    border-radius: 24px !important;
     padding: 10px 20px !important;
     box-shadow: none !important;
     border: none !important;
@@ -81,7 +75,6 @@ div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarUser"])
     width: fit-content !important;
 }
 
-/* 4. ASSISTANT MESSAGE (Frameless Plain Text with Avatar on Left) */
 div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarAssistant"]) div[data-testid="stChatMessageContent"] {
     margin-left: 12px !important;
 }
@@ -95,7 +88,6 @@ div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarAssista
     width: 100% !important;
 }
 
-/* 5. Typography Styling */
 div[data-testid="stChatMessageContent"] * {
     margin: 0 !important;
     padding: 0 !important;
@@ -113,18 +105,17 @@ div[data-testid="stChatMessage"]:has(div[data-testid="stChatMessageAvatarUser"])
     font-weight: 400 !important;
 }
 
-/* 6. Code & Math adjustments */
 div[data-testid="stChatMessageContent"] .katex {
     font-size: 1.05em !important;
     vertical-align: middle !important;
 }
 
-/* 7. Bottom Padding for Chat Input */
 .main .block-container {
     padding-bottom: 6rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
 # ---- SIDEBAR & PERSONA SELECTOR ----
 with st.sidebar:
     st.header("⚙️ Stage Settings")
@@ -146,29 +137,24 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-
 # ---- 3. CHAT INPUT & API CALL ----
 if user_input := st.chat_input("Say something to the bot..."):
 
-    # Render user input
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Store user message in memory
     st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Format session history into Gemini's Content format
     contents = []
     for msg in st.session_state.messages:
         role = "user" if msg["role"] == "user" else "model"
         contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg["content"])]))
 
-    # Generate response from Gemini
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
                 response = client.models.generate_content(
-                    model="gemini-3.6-flash",
+                    model="gemini-3.1-flash-lite",
                     contents=contents,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
@@ -179,8 +165,8 @@ if user_input := st.chat_input("Say something to the bot..."):
                 if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
                     reply_text = "⚠️ Oops, I've hit my daily message limit for now! Please try again in a bit, or switch to a different API key."
                 else:
+                    st.error(f"DEBUG: {e}")
                     reply_text = "⚠️ Something went wrong while generating a response. Please try again."
             st.markdown(reply_text)
 
-    # Store bot response in memory
     st.session_state.messages.append({"role": "assistant", "content": reply_text})
