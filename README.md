@@ -38,7 +38,7 @@ Most AI chatbots are boring corporate virtual assistants that apologize when you
 ## 🛠️ Architecture & Tech Stack
 
 * **Framework**: [Streamlit](https://streamlit.io/) for live web UI
-* **LLM Engine**: Google Generative AI (`google-genai` SDK with `gemini-2.5-flash` / `gemini-1.5-flash`)
+* **LLM Engine**: Google Generative AI (`google-genai` SDK with `gemini-3.1-flash-lite',)
 * **Memory Management**: Multi-turn history formatted in `st.session_state` preserving turn-by-turn context
 * **Environment Configuration**: `python-dotenv` for clean API key handling
 
